@@ -18,9 +18,9 @@ endmodule
 module Memory(
     input clk,
     input [13:0] addr,
+    input ren,
     output reg [31:0] rdata,
-    input rstrb,
-    input wstrb,
+    input wen,
     input [31:0] wdata,
     input [1:0] wsize
 );
@@ -33,11 +33,11 @@ module Memory(
     wire [11:0] word_addr = addr[13:2];
     wire [31:0] word_data = mem[word_addr];
     always @(posedge clk) begin
-        if(rstrb) begin
+        if(ren) begin
             rdata <= addr[1] ? (addr[0] ? (word_data >> 24) : (word_data >> 16)) :
                                (addr[0] ? (word_data >> 8) : word_data);
         end
-        if (wstrb) begin
+        if (wen) begin
             case (wsize)
                 2'b11: mem[word_addr] <= wdata;
                 2'b10: mem[word_addr] <= addr[1] ? {wdata[15:0], word_data[15:0]} :
@@ -55,9 +55,9 @@ module Cpu(
     input clk,
     input reset,
     output [13:0] addr,
+    output ren,
     input [31:0] rdata,
-    output rstrb,
-    output wstrb,
+    output wen,
     output [31:0] wdata,
     output [1:0] wsize
 );
@@ -135,14 +135,15 @@ module Cpu(
     end
 
     // Memory Access
-    assign addr = (state == FETCH || state == DECODE) ? pc : rs1 + (is_store_instr ? s_imm : i_imm);
-    assign rstrb = (state == FETCH || (state == EXECUTE && is_load_instr));
-    assign wstrb = (state == EXECUTE && is_store_instr);
+    assign addr = (state == FETCH) ? pc : rs1 + (is_store_instr ? s_imm : i_imm);
+    assign ren = (state == FETCH || (state == EXECUTE & is_load_instr));
+    assign wen = (state == EXECUTE) & is_store_instr;
     assign wdata = rs2;
     assign wsize = funct3[1:0] + 1;
 
     // Register write back
     reg [31:0] reg_write_data;
+    wire reg_wen = (state==EXECUTE && !is_branch_instr && !is_store_instr) || (state==LOAD);
     always @(*) begin
         case (1'b1)
             is_jal_instr || is_jalr_instr: reg_write_data = pc + 4;
@@ -150,11 +151,11 @@ module Cpu(
             is_auipc_instr: reg_write_data = pc + u_imm;
             is_load_instr: begin
                 case (funct3)
-                    3'b000: reg_write_data <= $signed(rdata[7:0]);
-                    3'b001: reg_write_data <= $signed(rdata[15:0]);
-                    3'b010: reg_write_data <= rdata;
-                    3'b100: reg_write_data <= rdata[7:0];
-                    3'b101: reg_write_data <= rdata[15:0];
+                    3'b000: reg_write_data = $signed(rdata[7:0]);
+                    3'b001: reg_write_data = $signed(rdata[15:0]);
+                    3'b010: reg_write_data = rdata;
+                    3'b100: reg_write_data = rdata[7:0];
+                    3'b101: reg_write_data = rdata[15:0];
                 endcase
             end
             default: reg_write_data = alu_out;
@@ -176,7 +177,7 @@ module Cpu(
     localparam FETCH = 0;
     localparam DECODE = 1;
     localparam EXECUTE = 2;
-    localparam WRITEBACK = 3;
+    localparam LOAD = 3;
     reg [1:0] state = FETCH;
 
     always @(posedge clk) begin
@@ -184,6 +185,9 @@ module Cpu(
             pc <= 32'h80000000;
             state <= FETCH;
         end else begin
+            if (reg_wen && rd_id != 0) begin
+                regs[rd_id] <= reg_write_data;
+            end
             case (state)
                 FETCH: begin
                     state <= DECODE;
@@ -196,7 +200,7 @@ module Cpu(
                 end
                 EXECUTE: begin
                     pc <= next_pc;
-                    state <= (is_branch_instr || is_store_instr || is_system_instr) ? FETCH : WRITEBACK;
+                    state <= is_load_instr  ? LOAD : FETCH;
                     // Exit state is ECALL with code 93 in a7
                     if (ecall && (/*a7*/regs[17] == 93)) begin
                         // Pass
@@ -207,23 +211,17 @@ module Cpu(
                         end else begin
                             $display("test %0d failed", /*gp*/regs[3] >> 1);
                             $display("pc = 0x%04x", pc);
-                            $display("sp = 0x%04x", regs[2]);
-                            $display("a4 = 0x%04x", regs[14]);
-                            $display("t2 = 0x%04x", regs[7]);
                             $display("FAIL");
                         end
                         $finish();
                     end
                 end
-                WRITEBACK: begin
-                    if (rd_id != 0) begin
-                        regs[rd_id] <= reg_write_data;
-                    end
+                LOAD: begin
                     state <= FETCH;
                 end
             endcase
         end
-    end
+    end  // always @(posedge clk)
 
 endmodule
 
@@ -242,18 +240,18 @@ module Soc (
     );
 
     wire [13:0] addr;
+    wire ren;
     wire [31:0] rdata;
-    wire rstrb;
-    wire wstrb;
+    wire wen;
     wire [31:0] wdata;
     wire [1:0] wsize;
 
     Memory memory(
         .clk(clk),
         .addr(addr),
+        .ren(ren),
         .rdata(rdata),
-        .rstrb(rstrb),
-        .wstrb(wstrb),
+        .wen(wen),
         .wdata(wdata),
         .wsize(wsize)
     );
@@ -262,9 +260,9 @@ module Soc (
         .clk(clk),
         .reset(reset),
         .addr(addr),
+        .ren(ren),
         .rdata(rdata),
-        .rstrb(rstrb),
-        .wstrb(wstrb),
+        .wen(wen),
         .wdata(wdata),
         .wsize(wsize)
     );

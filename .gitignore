@@ -3,3 +3,4 @@ venv/
 riscv-tests/
 firmware.hex
 test_pf32i.py
+rv32i.v
