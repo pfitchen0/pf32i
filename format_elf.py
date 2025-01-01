@@ -3,9 +3,6 @@
 import argparse
 import binascii
 from elftools.elf.elffile import ELFFile
-import os
-
-TMP_FOLDER = "tmp"
 
 
 def format_elf(elf_file: str, hex_file) -> None:
