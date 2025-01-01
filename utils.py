@@ -1,7 +1,5 @@
-"""Formats an ELF file into a hex array for $readmemh() in Verilog."""
-
-import argparse
 import binascii
+import subprocess
 from elftools.elf.elffile import ELFFile
 
 
@@ -10,7 +8,6 @@ def format_elf(elf_file: str, hex_file) -> None:
         elf = ELFFile(e)
         memory = b"\x00" * 0x4000
         for segment in elf.iter_segments():
-            print(segment.header)
             if segment.header.p_paddr < 0x80000000:  # this segment is a header.
                 continue
             addr = segment.header.p_paddr - 0x80000000
@@ -27,16 +24,10 @@ def format_elf(elf_file: str, hex_file) -> None:
                 )
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        "Format ELF file as a hex array for $readmemh() in Verilog."
-    )
-    parser.add_argument(
-        "--elf", required=True, type=str, help="Path to the ELF file to format."
-    )
-    parser.add_argument(
-        "--hex", default="firmware.hex", type=str, help="Output file for the hex array."
-    )
-    args = parser.parse_args()
-
-    format_elf(args.elf, args.hex)
+def simulate(elf_file: str) -> str:
+    format_elf(elf_file=elf_file, hex_file="firmware.hex")
+    stdout = subprocess.run(
+        ["sh", "iverilog.sh", "firmware.hex"], capture_output=True
+    ).stdout.decode()
+    _ = subprocess.run(["rm", "firmware.hex"], capture_output=True)
+    return stdout
