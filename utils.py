@@ -2,8 +2,10 @@ import binascii
 import subprocess
 from elftools.elf.elffile import ELFFile
 
+HEX_FILE = "firmware.hex"
 
-def format_elf(elf_file: str, hex_file) -> None:
+
+def format_elf(elf_file: str) -> None:
     with open(elf_file, "rb") as e:
         elf = ELFFile(e)
         memory = b"\x00" * 0x4000
@@ -13,7 +15,7 @@ def format_elf(elf_file: str, hex_file) -> None:
             addr = segment.header.p_paddr - 0x80000000
             data = segment.data()
             memory = memory[:addr] + data + memory[addr + len(data) :]
-            with open(hex_file, "wb") as h:
+            with open(HEX_FILE, "wb") as h:
                 h.write(
                     b"\n".join(
                         [
@@ -25,9 +27,9 @@ def format_elf(elf_file: str, hex_file) -> None:
 
 
 def simulate(elf_file: str) -> str:
-    format_elf(elf_file=elf_file, hex_file="firmware.hex")
+    format_elf(elf_file=elf_file)
     stdout = subprocess.run(
-        ["sh", "iverilog.sh", "firmware.hex"], capture_output=True
+        ["sh", "iverilog.sh", HEX_FILE], capture_output=True
     ).stdout.decode()
-    _ = subprocess.run(["rm", "firmware.hex"], capture_output=True)
+    # _ = subprocess.run(["rm", HEX_FILE], capture_output=True)
     return stdout

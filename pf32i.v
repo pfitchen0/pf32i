@@ -207,6 +207,9 @@ module Cpu(
                         end else begin
                             $display("test %0d failed", /*gp*/regs[3] >> 1);
                             $display("pc = 0x%04x", pc);
+                            $display("sp = 0x%04x", regs[2]);
+                            $display("a4 = 0x%04x", regs[14]);
+                            $display("t2 = 0x%04x", regs[7]);
                             $display("FAIL");
                         end
                         $finish();
