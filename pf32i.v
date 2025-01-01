@@ -66,13 +66,13 @@ module Cpu(
 
     // The 10 opcodes:
     wire [6:0] opcode = instr[6:0];
-    wire is_alu_reg_instr = (opcode == 7'b0110011);  // rd <- rs1 OP rs2   
+    wire is_alu_reg_instr = (opcode == 7'b0110011);  // rd <- rs1 OP rs2
     wire is_alu_imm_instr = (opcode == 7'b0010011);  // rd <- rs1 OP Iimm
     wire is_branch_instr = (opcode == 7'b1100011);  // if(rs1 OP rs2) pc<-pc+Bimm
     wire is_jalr_instr = (opcode == 7'b1100111);  // rd <- pc+4; pc<-rs1+Iimm
     wire is_jal_instr = (opcode == 7'b1101111);  // rd <- pc+4; pc<-pc+Jimm
     wire is_auipc_instr = (opcode == 7'b0010111);  // rd <- pc + Uimm
-    wire is_lui_instr = (opcode == 7'b0110111);  // rd <- Uimm   
+    wire is_lui_instr = (opcode == 7'b0110111);  // rd <- Uimm
     wire is_load_instr = (opcode == 7'b0000011);  // rd <- mem[rs1+Iimm]
     wire is_store_instr = (opcode == 7'b0100011);  // mem[rs1+Simm] <- rs2
     wire is_system_instr = (opcode == 7'b1110011);  // FENCE, EBREAK, ECALL, etc...
@@ -150,11 +150,11 @@ module Cpu(
             is_auipc_instr: reg_write_data = pc + u_imm;
             is_load_instr: begin
                 case (funct3)
-                    3'b000: reg_write_data <= {{24{rdata[7]}}, rdata[7:0]};
-                    3'b001: reg_write_data <= {{16{rdata[15]}}, rdata[15:0]};
+                    3'b000: reg_write_data <= $signed(rdata[7:0]);
+                    3'b001: reg_write_data <= $signed(rdata[15:0]);
                     3'b010: reg_write_data <= rdata;
-                    3'b100: reg_write_data <= {24'b0, rdata[7:0]};
-                    3'b101: reg_write_data <= {16'b0, rdata[15:0]};
+                    3'b100: reg_write_data <= rdata[7:0];
+                    3'b101: reg_write_data <= rdata[15:0];
                 endcase
             end
             default: reg_write_data = alu_out;
@@ -197,15 +197,15 @@ module Cpu(
                 EXECUTE: begin
                     pc <= next_pc;
                     state <= (is_branch_instr || is_store_instr || is_system_instr) ? FETCH : WRITEBACK;
-                    // Exit state is ECALL with code 93 in a7 (regs[17])
-                    if (ecall && (regs[17] == 93)) begin
+                    // Exit state is ECALL with code 93 in a7
+                    if (ecall && (/*a7*/regs[17] == 93)) begin
                         // Pass
-                        if ((regs[3] == 1) && (regs[10] == 0)) begin
+                        if ((/*gp*/regs[3] == 1) && (/*a0*/regs[10] == 0)) begin
                             $display("pc = 0x%04x", pc);
                             $display("PASS");
                         // Fail
                         end else begin
-                            $display("test %0d failed", regs[3] >> 1);
+                            $display("test %0d failed", /*gp*/regs[3] >> 1);
                             $display("pc = 0x%04x", pc);
                             $display("FAIL");
                         end

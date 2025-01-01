@@ -1,2 +1,3 @@
 venv/
 riscv-tests/
+test_pf32i.py
