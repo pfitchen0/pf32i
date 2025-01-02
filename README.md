@@ -2,7 +2,7 @@
 
 ## Overview
 
-`pf32i.v` is a super simple, low performance - but hopefully easy to understand - RISC-V RV32I multi-cycle processor implementation. It is inspired by other RV32I implementations such as the [FemtoRV32I](https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md), [twitchcore](https://github.com/geohot/twitchcore/blob/master/README.md), and [picorv32](https://github.com/YosysHQ/picorv32). I highly recommend checking out each of these, particularly the [FemtoRV32I](https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md) tutorial - it is a github gem.
+`pf32i.v` is a super simple, low performance - but hopefully easy to understand - RISC-V RV32I multi-cycle processor implementation. It is *heavily* inspired by other RV32I implementations such as the [FemtoRV32I](https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md), [twitchcore](https://github.com/geohot/twitchcore/blob/master/README.md), and [picorv32](https://github.com/YosysHQ/picorv32). I highly recommend checking out each of these, particularly the [FemtoRV32I](https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md) tutorial.
 
 ## Prerequisites
 
@@ -84,7 +84,7 @@ If the processor hits an ECALL instruction and register `a7` contains 93, this s
 80000668:	02301063          	bne	zero,gp,80000688 <pass>
 ```
 
-The first thing this test does - or any test for that matter - is load the test number into the gp register. In the `<fail>` routine, `gp` gets shifted left with a 1 pushed into the lower bit. We can recover the failed test number by shifting `gp` right one bit.
+The first thing this test does - or any test for that matter - is load the test number into the `gp` register. In the `<fail>` routine, `gp` gets shifted left with a 1 pushed into the lower bit. We can recover the failed test number by shifting `gp` right one bit.
 
 `pf32i.v` checks for test completion in the EXECUTE stage, and prints out the test status:
 
@@ -113,4 +113,4 @@ You can use the `test_pf32i.py` script to run all test cases at once.\*
 
 ## Simulation
 
-Run the `simulate.sh` script to use icarus-verilog to simulate the design.
+Run the `simulate.py` python script to convert your elf to a hex array for `$readmemh` and then use icarus-verilog to simulate the design.
