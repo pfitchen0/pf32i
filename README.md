@@ -2,7 +2,7 @@
 
 ## Overview
 
-`pf32i.v` is a super simple, low performance - but hopefully easy to understand - RISC-V RV32I multi-cycle processor implementation. It is inspired by other RV32I implementations such as the [FemtoRV32I](https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md), [twitchcore](https://github.com/geohot/twitchcore/blob/master/README.md), and [picorv32](https://github.com/YosysHQ/picorv32).
+`pf32i.v` is a super simple, low performance - but hopefully easy to understand - RISC-V RV32I multi-cycle processor implementation. It is inspired by other RV32I implementations such as the [FemtoRV32I](https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md), [twitchcore](https://github.com/geohot/twitchcore/blob/master/README.md), and [picorv32](https://github.com/YosysHQ/picorv32). I highly recommend checking out each of these, particularly the [FemtoRV32I](https://github.com/BrunoLevy/learn-fpga/blob/master/FemtoRV/TUTORIALS/FROM_BLINKER_TO_RISCV/README.md) tutorial - it is a github gem.
 
 ## Prerequisites
 
@@ -105,7 +105,11 @@ if (ecall && (/*a7*/regs[17] == 93)) begin
 end
 ```
 
-But how do we actually run these tests? Run the `test_pf32i.py`. `test_pf32i.py` uses `format_elf.py` to format each pre-compiled test into a hex array that can be loaded into the verilog memory module with `$readmemh()`.
+But how do we actually run these tests? Run the `test_pf32i.py`. `test_pf32i.py` formats each pre-compiled test into a hex array that can be loaded into the verilog memory module with `$readmemh()`. The `pf32i.v` implementation then checks for test completion in the EXECUTE stage and reports PASS/FAIL.
+
+You can use the `test_pf32i.py` script to run all test cases at once.\*
+
+\* *The `riscv-tests/isa/rv32ui-p-ma_data` test is skipped as it covers unaligned (or mis-aligned) loads and stores that cross word boundaries. `pf32i` doesn't support this (yet), but per the RISC-V specifications, mis-aligned loads/stores are optional. We can specify that mis-aligned memory access across word boundaries is not supported to the compiler with the `-mstrict-align` flag.*
 
 ## Simulation
 
