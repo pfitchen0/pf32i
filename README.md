@@ -109,7 +109,7 @@ But how do we actually run these tests? Run the `test_pf32i.py`. `test_pf32i.py`
 
 You can use the `test_pf32i.py` script to run all test cases at once.\*
 
-\* *The `riscv-tests/isa/rv32ui-p-ma_data` test is skipped as it covers unaligned (or mis-aligned) loads and stores that cross word boundaries. `pf32i` doesn't support this (yet), but per the RISC-V specifications, mis-aligned loads/stores are optional. We can specify that mis-aligned memory access across word boundaries is not supported to the compiler with the `-mstrict-align` flag.*
+\* *The `riscv-tests/isa/rv32ui-p-ma_data` test is skipped as it covers unaligned (or mis-aligned) loads and stores that cross word boundaries. `pf32i` doesn't support this (yet), but per the RISC-V specifications, mis-aligned loads/stores are optional. We can specify that mis-aligned memory access across word boundaries is not supported to the compiler with the [`-mstrict-align`](https://gcc.gnu.org/onlinedocs/gcc/RISC-V-Options.html) flag.*
 
 ## Simulation
 
