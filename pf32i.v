@@ -17,7 +17,7 @@ endmodule
 
 module Memory(
     input clk,
-    input [13:0] addr,
+    input [31:0] addr,
     input ren,
     output reg [31:0] rdata,
     input wen,
@@ -30,10 +30,10 @@ module Memory(
         $readmemh("firmware.hex", mem);
     end
 
-    wire [11:0] word_addr = addr[13:2];
+    wire [29:0] word_addr = addr[13:2];
     wire [31:0] word_data = mem[word_addr];
     always @(posedge clk) begin
-        if(ren) begin
+        if (ren) begin
             rdata <= addr[1] ? (addr[0] ? (word_data >> 24) : (word_data >> 16)) :
                                (addr[0] ? (word_data >> 8) : word_data);
         end
@@ -54,7 +54,7 @@ endmodule
 module Cpu(
     input clk,
     input reset,
-    output [13:0] addr,
+    output [31:0] addr,
     output ren,
     input [31:0] rdata,
     output wen,
@@ -227,7 +227,8 @@ endmodule
 
 module Soc (
     input xtal,
-    input resetn
+    input resetn,
+    output reg gpio
 );
     wire clk;
     wire reset;
@@ -239,19 +240,28 @@ module Soc (
         .reset(reset)
     );
 
-    wire [13:0] addr;
+    wire [31:0] addr;
     wire ren;
     wire [31:0] rdata;
     wire wen;
     wire [31:0] wdata;
     wire [1:0] wsize;
 
+    // Memory mapped GPIO
+    wire is_gpio = addr[30];  // Address base of 0x40000000
+    always @(posedge clk) begin
+        // $display("%b, %b", is_gpio, wen);
+        if (is_gpio & wen) begin
+            gpio <= wdata;
+        end
+    end
+
     Memory memory(
         .clk(clk),
         .addr(addr),
-        .ren(ren),
+        .ren((!is_gpio) & ren),
         .rdata(rdata),
-        .wen(wen),
+        .wen((!is_gpio) & wen),
         .wdata(wdata),
         .wsize(wsize)
     );

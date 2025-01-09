@@ -1,6 +1,7 @@
+import argparse
 import binascii
-import subprocess
 from elftools.elf.elffile import ELFFile
+import subprocess
 
 HEX_FILE = "firmware.hex"
 
@@ -29,7 +30,20 @@ def format_elf(elf_file: str) -> None:
 def simulate(elf_file: str) -> str:
     format_elf(elf_file=elf_file)
     stdout = subprocess.run(
-        ["sh", "iverilog.sh", HEX_FILE], capture_output=True
+        ["sh", "simulate.sh", HEX_FILE], capture_output=True, timeout=10
     ).stdout.decode()
-    # _ = subprocess.run(["rm", HEX_FILE], capture_output=True)
+    _ = subprocess.run(["rm", HEX_FILE], capture_output=True)
     return stdout
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Python utilities for pf32i.v.")
+    parser.add_argument(
+        "--format_elf",
+        type=str,
+        help=f"Format an .elf file as a {HEX_FILE} file that pf32i.v will pick up.",
+    )
+    args = parser.parse_args()
+
+    if args.format_elf:
+        format_elf(args.format_elf)

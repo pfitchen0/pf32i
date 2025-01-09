@@ -113,4 +113,15 @@ You can use the `test_pf32i.py` script to run all test cases at once.\*
 
 ## Simulation
 
-Run the `simulate.py` python script to convert your elf to a hex array for `$readmemh` and then use icarus-verilog to simulate the design.
+You can modify the `firmware.s` assembly file with your own code. Then use the `Makefile` to build an `.elf` file and format it into a `firmware.hex` array for `$readmemh` in `pf32i.v` to pick up. Then use the `simulate.sh` script to simulate running your firmware on the `pf32i.v` chip.
+
+```
+make
+sh simulate.sh
+```
+
+## Memory Map
+
+The `pf32i.v` chip currently has one section of RAM at 0x80000000 as defined in `link.ld`. 0x80000000 was chosen because this is what the `riscv-tests` default to using.
+
+`pf32i.v` also has a memory-mapped GPIO pin at 0x40000000. Writing 1 to that address sets the GPIO pin, and writing 0 to that address clears the GPIO pin.
