@@ -1,23 +1,28 @@
+CC = riscv64-unknown-elf-gcc
 AS = riscv64-unknown-elf-as
 LD = riscv64-unknown-elf-ld
 PY = python
 
+CCFLAGS = -fno-pic -march=rv32i -mabi=ilp32 -fno-stack-protector -w -Wl,--no-relax
 ASFLAGS = -march=rv32i -mabi=ilp32 -mno-relax
 LDFLAGS = -melf32lriscv -nostdlib
 
-SOURCES = firmware.s
-OBJECTS = $(SOURCES:.s=.o)  # replace .s with .o
+SOURCES = main.c start.s
+OBJECTS = start.o main.o
 LDSCRIPT = link.ld
 ELF = firmware.elf
 HEX = firmware.hex
 
 all: $(HEX)
 
-%.o: %.asm
+%.o: %.c
+	$(CC) $(CCFLAGS) $< -o $@
+
+%.o: %.s
 	$(AS) $(ASFLAGS) $< -o $@
 
 $(ELF): $(OBJECTS)
-	$(LD) $(LDFLAGS) $(OBJECTS) -o $@ -T $(LDSCRIPT)
+	$(LD) $(CCFLAGS) -o $@ -T $(LDSCRIPT) $(OBJECTS) $(LDFLAGS)
 
 $(HEX): $(ELF)
 	$(PY) utils.py --format_elf $(ELF)
@@ -25,4 +30,7 @@ $(HEX): $(ELF)
 clean:
 	rm -f $(OBJECTS) $(ELF) $(HEX)
 
-.PHONY: all clean
+simulate: $(HEX)
+	sh simulate.sh
+
+.PHONY: all clean simulate
