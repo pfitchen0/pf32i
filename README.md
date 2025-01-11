@@ -113,11 +113,19 @@ You can use the `test_pf32i.py` script to run all test cases at once.\*
 
 ## Simulation
 
-You can modify the `firmware.s` assembly file with your own code. Then use the `Makefile` to build an `.elf` file and format it into a `firmware.hex` array for `$readmemh` in `pf32i.v` to pick up. Then use the `simulate.sh` script to simulate running your firmware on the `pf32i.v` chip.
+You can modify the `main.c` file with your own code. Then use the `Makefile` to build an `.elf` file and format it into a `firmware.hex` array for `$readmemh` in `pf32i.v` to pick up. Then use the `simulate.sh` script to simulate running your firmware on the `pf32i.v` chip.
 
 ```
+make clean
 make
 sh simulate.sh
+```
+
+Or for short, there is a Makefile rule that does the same as above (except for clean):
+
+```
+make clean
+make simulate
 ```
 
 ## Memory Map
