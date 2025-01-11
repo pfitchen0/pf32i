@@ -225,15 +225,29 @@ module Cpu(
 
 endmodule
 
+module Gpio (
+    input clk,
+    input wen,
+    input [31:0] wdata,
+    output reg [7:0] gpio
+);
+    always @(posedge clk) begin
+        if (wen) begin
+            gpio <= wdata;
+        end
+    end
+
+endmodule
+
 module Soc (
     input xtal,
     input resetn,
-    output reg gpio
+    output [7:0] gpio
 );
     wire clk;
     wire reset;
 
-    ClockDivider clk_divider(
+    ClockDivider clk_divider (
         .xtal(xtal),
         .resetn(resetn),
         .clk(clk),
@@ -249,14 +263,15 @@ module Soc (
 
     // Memory mapped GPIO
     wire is_gpio = addr[30];  // Address base of 0x40000000
-    always @(posedge clk) begin
-        // $display("%b, %b", is_gpio, wen);
-        if (is_gpio & wen) begin
-            gpio <= wdata;
-        end
-    end
 
-    Memory memory(
+    Gpio gpio_mod (
+        .clk(clk),
+        .wen(is_gpio & wen),
+        .wdata(wdata),
+        .gpio(gpio)
+    );
+
+    Memory memory (
         .clk(clk),
         .addr(addr),
         .ren((!is_gpio) & ren),
@@ -266,7 +281,7 @@ module Soc (
         .wsize(wsize)
     );
 
-    Cpu cpu(
+    Cpu cpu (
         .clk(clk),
         .reset(reset),
         .addr(addr),

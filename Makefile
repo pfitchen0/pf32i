@@ -2,7 +2,7 @@ CC = riscv64-unknown-elf-gcc
 LD = riscv64-unknown-elf-ld
 PY = python
 
-CCFLAGS = -fno-pic -march=rv32i -mabi=ilp32 -fno-stack-protector -w -Wl,--no-relax -nostartfiles
+CCFLAGS = -fno-pic -march=rv32i -mabi=ilp32 -fno-stack-protector -w -Wl,--no-relax -nostartfiles -O0
 LDFLAGS = -melf32lriscv -nostdlib
 
 SOURCES = main.c

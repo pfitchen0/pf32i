@@ -1,7 +1,7 @@
 module bench();
     reg xtal;
     wire resetn = 1;
-    wire gpio;
+    wire [7:0] gpio;
 
     Soc dut(
         .xtal(xtal),
@@ -9,7 +9,7 @@ module bench();
         .gpio(gpio)
     );
 
-    reg prev_gpio = 0;
+    reg [7:0] prev_gpio = 0;
     initial begin
         xtal = 0;
         forever begin
