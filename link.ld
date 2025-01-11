@@ -11,5 +11,5 @@ SECTIONS
         *(.*) 
     } > RAM
     
-    ENTRY(start) 
+    ENTRY(_start) 
 }
