@@ -132,4 +132,6 @@ make simulate
 
 The `pf32i.v` chip currently has one section of RAM at 0x80000000 as defined in `link.ld`. 0x80000000 was chosen because this is what the `riscv-tests` default to using.
 
-`pf32i.v` also has a memory-mapped GPIO pin at 0x40000000. Writing 1 to that address sets the GPIO pin, and writing 0 to that address clears the GPIO pin.
+`pf32i.v` also has 8 memory-mapped GPIO *output* pins at 0x40000000. These pins can be set/cleared by writing to the first byte at 0x40000000, where each bit in that byte corresponds to a GPIO pin.
+
+Since `pf32i.v` has one unified memory, the startup code does not need to copy data from Flash to RAM.
